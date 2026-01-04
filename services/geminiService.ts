@@ -2,10 +2,18 @@ import { GoogleGenAI, Chat } from "@google/genai";
 
 // Initialize the client using process.env.API_KEY as per guidelines.
 // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// We add a safety check here: if the key is missing (e.g. during build or misconfiguration),
+// we do not instantiate the client to prevent a runtime crash on page load.
+const apiKey = process.env.API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Function to get a chat response for the assistant
 export const getAssistantResponse = async (history: { role: string; parts: { text: string }[] }[], newMessage: string): Promise<string> => {
+  if (!ai) {
+    console.warn("Gemini API Key is missing.");
+    return "I am currently offline. Please check the system configuration.";
+  }
+
   try {
     const model = 'gemini-3-flash-preview';
     const chat: Chat = ai.chats.create({
@@ -31,6 +39,8 @@ export const getAssistantResponse = async (history: { role: string; parts: { tex
 
 // Function to generate styling tips for a specific product
 export const getProductStylingTips = async (productName: string, productDesc: string): Promise<string> => {
+  if (!ai) return "Styling tips unavailable (API Key missing).";
+
   try {
      const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
