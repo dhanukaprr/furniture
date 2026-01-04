@@ -1,28 +1,11 @@
 import { GoogleGenAI, Chat } from "@google/genai";
 
-// Cloudflare Pages / Vite uses import.meta.env for environment variables
-const apiKey = import.meta.env.VITE_API_KEY || '';
-
-// Initialize the client
-// Note: In a real production app, you might want to proxy this through a backend
-// to avoid exposing the key if not using the specific client-side safe env vars.
-// For this demo, we assume the environment provides it.
-let ai: GoogleGenAI | null = null;
-
-try {
-  if (apiKey) {
-    ai = new GoogleGenAI({ apiKey });
-  } else {
-    console.warn("VITE_API_KEY is missing. Gemini features will be disabled.");
-  }
-} catch (error) {
-  console.error("Failed to initialize GoogleGenAI", error);
-}
+// Initialize the client using process.env.API_KEY as per guidelines.
+// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Function to get a chat response for the assistant
 export const getAssistantResponse = async (history: { role: string; parts: { text: string }[] }[], newMessage: string): Promise<string> => {
-  if (!ai) return "I'm sorry, I can't connect to my brain right now (API Key missing).";
-
   try {
     const model = 'gemini-3-flash-preview';
     const chat: Chat = ai.chats.create({
@@ -48,8 +31,6 @@ export const getAssistantResponse = async (history: { role: string; parts: { tex
 
 // Function to generate styling tips for a specific product
 export const getProductStylingTips = async (productName: string, productDesc: string): Promise<string> => {
-  if (!ai) return "Styling tips unavailable.";
-
   try {
      const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
